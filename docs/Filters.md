@@ -15,6 +15,7 @@ Convert and modify dates.
 Converts a date to the specified format, [see reference](https://day.js.org/docs/en/display/format).
 
 - `{{date|date:"YYYY-MM-DD"}}` converts the current date to "YYYY-MM-DD".
+- `{{date|date:"org"}}` formats the date as an Org-mode timestamp, e.g. `<2024-12-01 Sun>`. When using an Org-mode template, `{{date}}` without a format parameter automatically uses the Org-mode timestamp format.
 - Use `date:("outputFormat", "inputFormat")` to specify the input format, e.g. `"12/01/2024"|date:("YYYY-MM-DD", "MM/DD/YYYY")` parses "12/01/2024" and returns `"2024-12-01"`.
 
 ### `date_modify` 
@@ -119,7 +120,7 @@ Apply [[Basic formatting syntax]] and [[Advanced formatting syntax]] to text.
 
 ### `blockquote` 
 
-Adds a Markdown quote prefix (`> `) to each line of the input.
+Adds a Markdown quote prefix (`> `) to each line of the input. When using an Org-mode template, outputs a `#+BEGIN_QUOTE` block instead.
 
 ### `callout`
 
@@ -128,13 +129,15 @@ Creates a [[Callouts|callout]] with optional parameters: `{{variable|callout:("t
 - `type` is the callout type, and defaults to "info"
 - `title` is the callout title, and defaults to empty
 - `foldState` is a boolean to set the fold state (true for folded, false for unfolded, null for not foldable)
+- When using an Org-mode template, outputs a `#+BEGIN_<TYPE>` block instead
 
 ### `footnote`
 
-Converts an array or object into a list of Markdown footnotes.
+Converts an array or object into a list of footnotes.
 
 - For arrays: `["first item","second item"]|footnote` returns: `[^1]: first item` etc.
 - For objects: `{"First Note": "Content 1", "Second Note": "Content 2"}|footnote` returns: `[^first-note]: Content 1` etc.
+- When using an Org-mode template, outputs `[fn:1]` syntax instead of `[^1]`
 
 ### `fragment_link`
 
@@ -153,11 +156,12 @@ Converts strings, arrays, or objects into Markdown image syntax.
 
 ### `link`
 
-Converts strings, arrays, or objects into Markdown link syntax (not to be confused with [[Filters#`wikilink`|wikilink]]).
+Converts strings, arrays, or objects into link syntax (not to be confused with [[Filters#`wikilink`|wikilink]]).
 
 - For strings: `"url"|link:"author"` returns `[author](url)`.
-- For arrays: `["url1","url2"]|link:"author"` returns an array of Markdown links with the same text for all links.
-- For objects: `{"url1": "Author 1", "url2": "Author 2"}|link` returns Markdown links with the text that matches the object keys.
+- For arrays: `["url1","url2"]|link:"author"` returns an array of links with the same text for all links.
+- For objects: `{"url1": "Author 1", "url2": "Author 2"}|link` returns links with the text that matches the object keys.
+- When using an Org-mode template, outputs `[[url][text]]` syntax instead of `[text](url)`
 
 ### `list`
 
@@ -177,6 +181,14 @@ Converts an array or array of objects into a [[Advanced formatting syntax#Tables
 - For a simple array, it creates a single-column table with "Value" as the header.
 - Custom column headers can be specified using: `table:("Column 1", "Column 2", "Column 3")`. When used with a simple array, it automatically breaks the data into rows based on the number of columns specified.
 
+### `org_tags`
+
+Converts comma-separated tags or a JSON array into Org-mode tag format.
+
+- `"tag1, tag2, tag3"|org_tags` returns `:tag1:tag2:tag3:`
+- `["tag1","tag2"]|org_tags` returns `:tag1:tag2:`
+- Spaces in tags are replaced with underscores: `"my tag"|org_tags` returns `:my_tag:`
+
 ### `wikilink`
 
 Converts strings, arrays, or objects into Obsidian [[Link notes|wikilink]] syntax.
@@ -186,6 +198,7 @@ Converts strings, arrays, or objects into Obsidian [[Link notes|wikilink]] synta
 - For arrays: `["page1","page2"]|wikilink` returns an array of wikilinks without aliases.
 - For arrays with alias: `["page1","page2"]|wikilink:"alias"` returns an array of wikilinks with the same alias for all links.
 - For objects: `{"page1": "alias1", "page2": "alias2"}|wikilink` returns wikilinks with the keys as page names and values as aliases.
+- When using an Org-mode template, outputs `[[file:page][alias]]` syntax instead of `[[page|alias]]`
 
 ## Numbers
 

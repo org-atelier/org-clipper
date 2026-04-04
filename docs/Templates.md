@@ -32,6 +32,13 @@ Define how content from Web Clipper will be added to Obsidian:
 - **Add to an existing note**, at the top or bottom
 - **Add to daily note**, at the top or bottom (requires the [[daily notes]] plugin to be active)
 
+### Output format
+
+Choose the output format for the template:
+
+- **Markdown** (default) — Saves notes as Markdown files with YAML frontmatter
+- **Org-mode** — Saves notes as Org-mode files with a property drawer (`:PROPERTIES: ... :END:`). When Org-mode is selected, the `{{content}}` variable outputs Org syntax, and format-sensitive filters like `link`, `wikilink`, `blockquote`, `callout`, and `footnote` automatically use Org-mode syntax
+
 ### Automatically trigger a template
 
 Template triggers allow you to automatically select a template based on the current page URL or [schema.org](https://schema.org/) data. You can define multiple rules for each template, separated by a new line.

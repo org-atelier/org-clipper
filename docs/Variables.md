@@ -20,7 +20,7 @@ The main content variable is `{{content}}`, which contains the article content, 
 | Variable            | Description                                                                            |
 | ------------------- | -------------------------------------------------------------------------------------- |
 | `{{author}}`        | Author of the page                                                                     |
-| `{{content}}`       | Article content, [[Highlight web pages\|highlights]], or selection, in Markdown format |
+| `{{content}}`       | Article content, [[Highlight web pages\|highlights]], or selection. Format depends on the template's output format (Markdown or Org-mode) |
 | `{{contentHtml}}`   | Article content, [[Highlight web pages\|highlights]], or selection, in HTML format     |
 | `{{date}}`          | Current date, can be formatted using the `date` filter                                 |
 | `{{description}}`   | Description or excerpt                                                                 |
@@ -36,6 +36,7 @@ The main content variable is `{{content}}`, which contains the article content, 
 | `{{title}}`         | Title of the page                                                                      |
 | `{{time}}`          | Current date and time                                                                  |
 | `{{url}}`           | Current URL                                                                            |
+| `{{uuid}}`          | A randomly generated UUID (v4), useful for org-roam IDs                                |
 | `{{words}}`         | Word count                                                                             |
 
 ## Prompt variables
