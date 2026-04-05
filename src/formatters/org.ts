@@ -1,6 +1,6 @@
 import { OutputFormatter, OutputFormat } from './types';
 import { Property } from '../types/types';
-import { domToOrg } from 'html-to-org';
+import { domToOrg } from 'html-to-org/dom';
 
 /**
  * Org-mode formatter — converts content to Org syntax

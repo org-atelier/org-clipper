@@ -24,8 +24,8 @@ importers:
         specifier: ^11.11.1
         version: 11.11.1
       html-to-org:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: link:../html-to-org
+        version: link:../html-to-org
       linkedom:
         specifier: ^0.18.0
         version: 0.18.12
@@ -974,10 +974,6 @@ packages:
 
   html-escaper@3.0.3:
     resolution: {integrity: sha512-RuMffC89BOWQoY0WKGpIhn5gX3iI54O6nRA0yC124NYVtzjmFWBIiFd8M0x+ZdX0P9R4lADg1mgP8C7PxGOWuQ==}
-
-  html-to-org@0.1.0:
-    resolution: {integrity: sha512-iVSlZBQn1vBzmnfUETQlOdaM+3S4iQXINC0pHB4s515JQNWivSlSg5AF/RLIz7dHEwRkX6YHW9jzTtZVPfZtGQ==}
-    engines: {node: '>=20'}
 
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
@@ -2373,12 +2369,6 @@ snapshots:
   highlight.js@11.11.1: {}
 
   html-escaper@3.0.3: {}
-
-  html-to-org@0.1.0:
-    dependencies:
-      linkedom: 0.18.12
-    transitivePeerDependencies:
-      - canvas
 
   htmlparser2@10.1.0:
     dependencies:
