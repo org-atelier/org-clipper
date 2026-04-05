@@ -177,7 +177,7 @@ declare global {
 		metaTags: { name?: string | null; property?: string | null; content: string | null }[];
 	}
 
-	browser.runtime.onMessage.addListener((request: any, sender, sendResponse) => {
+	browser.runtime.onMessage.addListener(((request: any, sender: any, sendResponse: any) => {
 		// If a newer generation of this content script has been injected,
 		// yield to it rather than responding from a potentially stale context.
 		if (window.obsidianClipperGeneration !== myGeneration) {
@@ -463,7 +463,7 @@ declare global {
 			return true;
 		}
 		return true;
-	});
+	}) as any);
 
 	function extractContentBySelector(selector: string, attribute?: string, extractHtml: boolean = false): string | string[] {
 		return extractContentBySelectorShared(document, selector, attribute, extractHtml);

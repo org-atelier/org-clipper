@@ -229,7 +229,7 @@ async function initializeExtension(tabId: number) {
 }
 
 function setupMessageListeners() {
-	browser.runtime.onMessage.addListener((request: any, sender: browser.Runtime.MessageSender, sendResponse: (response?: any) => void) => {
+	browser.runtime.onMessage.addListener(((request: any, sender: browser.Runtime.MessageSender, sendResponse: (response?: any) => void) => {
 		if (request.action === "triggerQuickClip") {
 			handleClipObsidian().then(() => {
 				sendResponse({success: true});
@@ -272,7 +272,7 @@ function setupMessageListeners() {
 		} else if (request.action === "highlighterModeChanged") {
 			// This message is now handled by checkHighlighterModeState
 		}
-	});
+	}) as any);
 }
 
 document.addEventListener('DOMContentLoaded', async function() {

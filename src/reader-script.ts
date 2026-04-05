@@ -12,7 +12,7 @@ import browser from './utils/browser-polyfill';
 	(window as any).obsidianReaderInitialized = true;
 
 	// Listen for messages from the content script
-	browser.runtime.onMessage.addListener((request: any, sender: browser.Runtime.MessageSender, sendResponse: (response?: any) => void) => {
+	browser.runtime.onMessage.addListener(((request: any, sender: browser.Runtime.MessageSender, sendResponse: (response?: any) => void) => {
 		if (request.action === "toggleReaderMode") {
 			(async () => {
 				try {
@@ -26,5 +26,5 @@ import browser from './utils/browser-polyfill';
 			})();
 			return true;
 		}
-	});
+	}) as any);
 })(); 

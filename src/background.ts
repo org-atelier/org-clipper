@@ -170,7 +170,7 @@ async function sendMessageToPopup(tabId: number, message: any): Promise<void> {
 
 
 
-browser.runtime.onMessage.addListener((request: unknown, sender: browser.Runtime.MessageSender, sendResponse: (response?: any) => void): true | undefined => {
+browser.runtime.onMessage.addListener(((request: unknown, sender: browser.Runtime.MessageSender, sendResponse: (response?: any) => void): true | undefined => {
 	if (typeof request === 'object' && request !== null) {
 		const typedRequest = request as { action: string; isActive?: boolean; hasHighlights?: boolean; tabId?: number; text?: string; section?: string };
 		
@@ -526,7 +526,7 @@ browser.runtime.onMessage.addListener((request: unknown, sender: browser.Runtime
 		}
 	}
 	return undefined;
-});
+}) as any);
 
 browser.commands.onCommand.addListener(async (command, tab) => {
 	// Some browsers (e.g. Orion) don't pass the tab parameter, so fall back to querying
