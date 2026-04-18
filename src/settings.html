@@ -122,10 +122,10 @@
 								</div>
 							</div>
 							<div class="setting-group">
-								<div class="setting-item setting-item-heading"><h3 data-i18n="vaults">Vaults</h3></div>
+								<div class="setting-item setting-item-heading"><h3 data-i18n="vaults">Save directories</h3></div>
 								<div class="setting-items">
-								<div class="setting-item-description" data-i18n="vaultsDescription">By default, clipped notes are saved to the currently open vault. You can add vaults here if you want the option to save to different vaults. Vault names must exactly match the name of the Obsidian vault. Press <strong>enter</strong> to add a&nbsp;vault.</div>
-								<input type="text" id="vault-input" data-i18n="addVaultPlaceholder" placeholder="Press enter to add a vault" autocomplete="off" spellcheck="false" />
+								<div class="setting-item-description" data-i18n="vaultsDescription">Directories where clipped notes are saved. Press <strong>enter</strong> to add a&nbsp;directory.</div>
+								<input type="text" id="vault-input" data-i18n="addVaultPlaceholder" placeholder="Press enter to add a save directory" autocomplete="off" spellcheck="false" />
 								<ul id="vault-list" class="setting-item-list"></ul>
 								</div>
 							</div>
@@ -391,8 +391,8 @@
 											<input type="text" id="template-path-name" placeholder="Clippings" />
 										</div>
 										<div class="setting-item">
-											<label for="template-vault" data-i18n="vault">Vault</label>
-											<div class="setting-item-description" data-i18n="vaultDescription">Select the default vault for this template. Go to general settings to add or remove vaults.</div>
+											<label for="template-vault" data-i18n="vault">Save directory</label>
+											<div class="setting-item-description" data-i18n="vaultDescription">Select the default save directory for this template. Go to general settings to add or remove directories.</div>
 											<select id="template-vault">
 												<option value="" data-i18n="lastUsed">Last used</option>
 											</select>
