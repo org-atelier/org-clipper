@@ -27,7 +27,6 @@ export interface BuildVariablesParams {
 	wordCount: number;
 	selection?: string;
 	selectionHtml?: string;
-	highlights?: string;
 	schemaOrgData?: any;
 	metaTags?: { name?: string | null; property?: string | null; content: string | null }[];
 	extractedContent?: Record<string, string>;
@@ -54,7 +53,6 @@ export function buildVariables(params: BuildVariablesParams): Record<string, str
 		'{{domain}}': getDomain(currentUrl),
 		'{{favicon}}': params.favicon || '',
 		'{{fullHtml}}': (params.fullHtml || '').trim(),
-		'{{highlights}}': params.highlights || '',
 		'{{image}}': params.image || '',
 		'{{noteName}}': noteName.trim(),
 		'{{published}}': (params.published || '').split(',')[0].trim(),

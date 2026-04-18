@@ -44,9 +44,6 @@ module.exports = (env, argv) => {
 			content: './src/content.ts',
 			background: './src/background.ts',
 			style: './src/style.scss',
-			highlighter: './src/highlighter.scss',
-			reader: './src/reader.scss',
-			'reader-script': './src/reader-script.ts'
 		},
 		output: {
 			path: path.resolve(__dirname, outputDir),

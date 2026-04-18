@@ -1,12 +1,8 @@
 import browser from './utils/browser-polyfill';
-import * as highlighter from './utils/highlighter';
-import { loadSettings, generalSettings } from './utils/storage-utils';
 import Defuddle from 'defuddle';
 import { getDomain } from './utils/string-utils';
 import { extractContentBySelector as extractContentBySelectorShared } from './utils/shared';
-import { createMarkdownContent } from 'defuddle/full';
 import { flattenShadowDom } from './utils/flatten-shadow-dom';
-import { saveFile } from './utils/file-utils';
 import { debugLog } from './utils/debug';
 
 declare global {
@@ -15,18 +11,12 @@ declare global {
 	}
 }
 
-// IIFE to scope variables and allow safe re-execution
 (function() {
-	// Bump the generation counter on every injection. Older listeners close
-	// over their own generation value and bail out when they see a newer one,
-	// so a zombie content script (runtime invalidated after extension update)
-	// will silently yield to the freshly-injected instance.
 	window.obsidianClipperGeneration = (window.obsidianClipperGeneration ?? 0) + 1;
 	const myGeneration = window.obsidianClipperGeneration;
 
 	debugLog('Clipper', 'Initializing content script, generation', myGeneration);
 
-	let isHighlighterMode = false;
 	const iframeId = 'obsidian-clipper-iframe';
 	const containerId = 'obsidian-clipper-container';
 
@@ -61,7 +51,6 @@ declare global {
 		iframe.src = browser.runtime.getURL('side-panel.html?context=iframe');
 		container.appendChild(iframe);
 
-		// Add resize handle (left side only)
 		const handle = document.createElement('div');
 		handle.className = `obsidian-clipper-resize-handle obsidian-clipper-resize-handle-w`;
 		container.appendChild(handle);
@@ -82,8 +71,8 @@ declare global {
 
 	function addResizeListener(container: HTMLElement, handle: HTMLElement, direction: string) {
 		let isResizing = false;
-		let startX: number, startY: number, startWidth: number, startHeight: number, startLeft: number, startTop: number;
-	
+		let startX: number, startY: number, startWidth: number, startHeight: number, startTop: number;
+
 		handle.onmousedown = (e) => {
 			e.stopPropagation();
 			isResizing = true;
@@ -91,23 +80,22 @@ declare global {
 			startY = e.clientY;
 			startWidth = container.offsetWidth;
 			startHeight = container.offsetHeight;
-			startLeft = container.offsetLeft;
 			startTop = container.offsetTop;
 
 			document.body.style.cursor = window.getComputedStyle(handle).cursor;
-	
+
 			const iframe = container.querySelector('#obsidian-clipper-iframe');
 			if (iframe) iframe.classList.add('is-resizing');
-	
+
 			document.onmousemove = (moveEvent) => {
 				if (!isResizing) return;
-	
+
 				const dx = moveEvent.clientX - startX;
 				const dy = moveEvent.clientY - startY;
 
 				const minWidth = parseInt(container.style.minWidth) || 200;
 				const minHeight = parseInt(container.style.minHeight) || 200;
-	
+
 				if (direction.includes('e')) {
 					let newWidth = startWidth + dx;
 					if (newWidth < minWidth) newWidth = minWidth;
@@ -115,9 +103,7 @@ declare global {
 				}
 				if (direction.includes('w')) {
 					let newWidth = startWidth - dx;
-					if (newWidth < minWidth) {
-						newWidth = minWidth;
-					}
+					if (newWidth < minWidth) newWidth = minWidth;
 					container.style.width = `${newWidth}px`;
 				}
 				if (direction.includes('s')) {
@@ -136,13 +122,13 @@ declare global {
 					container.style.top = `${newTop}px`;
 				}
 			};
-	
+
 			document.onmouseup = () => {
 				isResizing = false;
 				const iframe = container.querySelector('#obsidian-clipper-iframe');
 				if (iframe) iframe.classList.remove('is-resizing');
 				document.body.style.cursor = '';
-				
+
 				const newWidth = container.offsetWidth;
 				const newHeight = container.offsetHeight;
 				browser.storage.local.set({ clipperIframeWidth: newWidth, clipperIframeHeight: newHeight });
@@ -153,7 +139,6 @@ declare global {
 		};
 	}
 
-	// Firefox
 	browser.runtime.sendMessage({ action: "contentScriptLoaded" });
 
 	interface ContentResponse {
@@ -162,7 +147,6 @@ declare global {
 		extractedContent: { [key: string]: string };
 		schemaOrgData: any;
 		fullHtml: string;
-		highlights: string[];
 		title: string;
 		description: string;
 		domain: string;
@@ -177,9 +161,7 @@ declare global {
 		metaTags: { name?: string | null; property?: string | null; content: string | null }[];
 	}
 
-	browser.runtime.onMessage.addListener(((request: any, sender: any, sendResponse: any) => {
-		// If a newer generation of this content script has been injected,
-		// yield to it rather than responding from a potentially stale context.
+	browser.runtime.onMessage.addListener(((request: any, _sender: any, sendResponse: any) => {
 		if (window.obsidianClipperGeneration !== myGeneration) {
 			return;
 		}
@@ -219,55 +201,7 @@ declare global {
 			return true;
 		}
 
-		if (request.action === "copyMarkdownToClipboard") {
-			flattenShadowDom(document).then(() => {
-				try {
-					// Extract page content using Defuddle
-					const defuddled = new Defuddle(document, { url: document.URL }).parse();
-
-					// Convert HTML content to markdown
-					const markdown = createMarkdownContent(defuddled.content, document.URL);
-
-					// Copy to clipboard
-					const textArea = document.createElement("textarea");
-					textArea.value = markdown;
-					document.body.appendChild(textArea);
-					textArea.select();
-					document.execCommand('copy');
-					document.body.removeChild(textArea);
-
-					sendResponse({ success: true });
-				} catch (err) {
-					console.error('Failed to copy markdown to clipboard:', err);
-					sendResponse({ success: false, error: (err as Error).message });
-				}
-			});
-			return true;
-		}
-
-		if (request.action === "saveMarkdownToFile") {
-			flattenShadowDom(document).then(async () => {
-				try {
-					const defuddled = new Defuddle(document, { url: document.URL }).parse();
-					const markdown = createMarkdownContent(defuddled.content, document.URL);
-					const title = defuddled.title || document.title || 'Untitled';
-					const fileName = title.replace(/[/\\?%*:|"<>]/g, '-');
-					await saveFile({
-						content: markdown,
-						fileName,
-						mimeType: 'text/markdown',
-					});
-					sendResponse({ success: true });
-				} catch (err) {
-					console.error('Failed to save markdown file:', err);
-					sendResponse({ success: false, error: (err as Error).message });
-				}
-			});
-			return true;
-		}
-
 		if (request.action === "getPageContent") {
-			// Flatten shadow DOM before extraction (async, needs main world)
 			const flattenTimeout = new Promise<void>(resolve => setTimeout(resolve, 3000));
 			Promise.race([flattenShadowDom(document), flattenTimeout]).then(async () => {
 				let selectedHtml = '';
@@ -281,8 +215,6 @@ declare global {
 					selectedHtml = div.innerHTML;
 				}
 
-				// Use parseAsync to ensure async variables like {{transcript}} are available.
-				// If it hangs (e.g. another extension has corrupted fetch), fall back to sync parse.
 				const defuddle = new Defuddle(document, { url: document.URL });
 				const parseTimeout = new Promise<never>((_, reject) =>
 					setTimeout(() => reject(new Error('parseAsync timeout')), 8000)
@@ -293,18 +225,11 @@ declare global {
 					...defuddled.variables,
 				};
 
-				// Create a new DOMParser
 				const parser = new DOMParser();
-				// Parse the document's HTML
 				const doc = parser.parseFromString(document.documentElement.outerHTML, 'text/html');
-
-				// Remove all script and style elements
 				doc.querySelectorAll('script, style').forEach(el => el.remove());
-
-				// Remove style attributes from all elements
 				doc.querySelectorAll('*').forEach(el => el.removeAttribute('style'));
 
-				// Convert all relative URLs to absolute
 				doc.querySelectorAll('[src], [href]').forEach(element => {
 					['src', 'href', 'srcset'].forEach(attr => {
 						const value = element.getAttribute(attr);
@@ -332,7 +257,6 @@ declare global {
 					});
 				});
 
-				// Get the modified HTML without scripts, styles, and style attributes
 				const cleanedHtml = doc.documentElement.outerHTML;
 
 				const response: ContentResponse = {
@@ -343,7 +267,6 @@ declare global {
 					extractedContent: extractedContent,
 					favicon: defuddled.favicon,
 					fullHtml: cleanedHtml,
-					highlights: highlighter.getHighlights(),
 					image: defuddled.image,
 					language: defuddled.language || '',
 					parseTime: defuddled.parseTime,
@@ -357,189 +280,18 @@ declare global {
 				};
 				sendResponse(response);
 			}).catch((error: unknown) => {
-				console.error('[Obsidian Clipper] getPageContent error:', error);
+				console.error('[Org Clipper] getPageContent error:', error);
 				sendResponse({ success: false, error: error instanceof Error ? error.message : String(error) });
 			});
 			return true;
-		} else if (request.action === "extractContent") {
-			const content = extractContentBySelector(request.selector, request.attribute, request.extractHtml);
+		}
+
+		if (request.action === "extractContent") {
+			const content = extractContentBySelectorShared(document, request.selector, request.attribute, request.extractHtml);
 			sendResponse({ content: content });
-		} else if (request.action === "paintHighlights") {
-			highlighter.loadHighlights().then(() => {
-				if (generalSettings.alwaysShowHighlights) {
-					highlighter.applyHighlights();
-				}
-				sendResponse({ success: true });
-			});
-			return true;
-		} else if (request.action === "setHighlighterMode") {
-			isHighlighterMode = request.isActive;
-			highlighter.toggleHighlighterMenu(isHighlighterMode);
-			updateHasHighlights();
-			sendResponse({ success: true });
-			return true;
-		} else if (request.action === "getHighlighterMode") {
-			browser.runtime.sendMessage({ action: "getHighlighterMode" }).then(sendResponse);
-			return true;
-		} else if (request.action === "toggleHighlighter") {
-			highlighter.toggleHighlighterMenu(request.isActive);
-			updateHasHighlights();
-			sendResponse({ success: true });
-		} else if (request.action === "highlightSelection") {
-			highlighter.toggleHighlighterMenu(request.isActive);
-			const selection = window.getSelection();
-			if (selection && !selection.isCollapsed) {
-				highlighter.handleTextSelection(selection);
-			}
-			updateHasHighlights();
-			sendResponse({ success: true });
-		} else if (request.action === "highlightElement") {
-			highlighter.toggleHighlighterMenu(request.isActive);
-			if (request.targetElementInfo) {
-				const { mediaType, srcUrl, pageUrl } = request.targetElementInfo;
-				
-				let elementToHighlight: Element | null = null;
-
-				// Function to compare URLs, handling both absolute and relative paths
-				const urlMatches = (elementSrc: string, targetSrc: string) => {
-					const elementUrl = new URL(elementSrc, pageUrl);
-					const targetUrl = new URL(targetSrc, pageUrl);
-					return elementUrl.href === targetUrl.href;
-				};
-
-				// Try to find the element using the src attribute
-				elementToHighlight = document.querySelector(`${mediaType}[src="${srcUrl}"]`);
-
-				// If not found, try with relative URL
-				if (!elementToHighlight) {
-					const relativeSrc = new URL(srcUrl).pathname;
-					elementToHighlight = document.querySelector(`${mediaType}[src="${relativeSrc}"]`);
-				}
-
-				// If still not found, iterate through all elements of the media type
-				if (!elementToHighlight) {
-					const elements = Array.from(document.getElementsByTagName(mediaType));
-					for (const el of elements) {
-						if (el instanceof HTMLImageElement || el instanceof HTMLVideoElement || el instanceof HTMLAudioElement) {
-							if (urlMatches(el.src, srcUrl)) {
-								elementToHighlight = el;
-								break;
-							}
-						}
-					}
-				}
-
-				if (elementToHighlight) {
-					const xpath = highlighter.getElementXPath(elementToHighlight);
-					highlighter.highlightElement(elementToHighlight);
-				} else {
-					console.warn('Could not find element to highlight. Info:', request.targetElementInfo);
-				}
-			}
-			updateHasHighlights();
-			sendResponse({ success: true });
-		} else if (request.action === "clearHighlights") {
-			highlighter.clearHighlights();
-			updateHasHighlights();
-			sendResponse({ success: true });
-		} else if (request.action === "getHighlighterState") {
-			browser.runtime.sendMessage({ action: "getHighlighterMode" })
-				.then(response => {
-					sendResponse(response);
-				})
-				.catch(error => {
-					console.error("Error getting highlighter mode:", error);
-					sendResponse({ isActive: false });
-				});
-			return true;
-		} else if (request.action === "toggleReaderMode") {
-			// Forward the request to the background script to inject reader mode if needed
-			browser.runtime.sendMessage({ action: "toggleReaderMode", tabId: sender.tab?.id })
-				.then(sendResponse)
-				.catch(error => {
-					console.error("Error toggling reader mode:", error);
-					sendResponse({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
-				});
 			return true;
 		}
+
 		return true;
 	}) as any);
-
-	function extractContentBySelector(selector: string, attribute?: string, extractHtml: boolean = false): string | string[] {
-		return extractContentBySelectorShared(document, selector, attribute, extractHtml);
-	}
-
-	function updateHasHighlights() {
-		const hasHighlights = highlighter.getHighlights().length > 0;
-		browser.runtime.sendMessage({ action: "updateHasHighlights", hasHighlights });
-	}
-
-	async function initializeHighlighter() {
-		await loadSettings();
-		await highlighter.loadHighlights();
-		
-		if (generalSettings.alwaysShowHighlights) {
-			highlighter.applyHighlights();
-		}
-		
-		updateHasHighlights();
-	}
-
-	// Initialize highlighter
-	initializeHighlighter();
-
-	// Call updateHasHighlights when the page loads
-	window.addEventListener('load', updateHasHighlights);
-
-	// Deactivate highlighter mode on unload
-	function handlePageUnload() {
-		if (isHighlighterMode) {
-			highlighter.toggleHighlighterMenu(false);
-			browser.runtime.sendMessage({ action: "highlighterModeChanged", isActive: false });
-			browser.storage.local.set({ isHighlighterMode: false });
-		}
-	}
-
-	window.addEventListener('beforeunload', handlePageUnload);
-
-	// Listen for custom events from the reader script
-	document.addEventListener('obsidian-reader-init', async () => {
-		// Find the highlighter button
-		const button = document.querySelector('[data-action="toggle-highlighter"]');
-		if (button) {
-			// Handle highlighter button clicks
-			button.addEventListener('click', async (e) => {
-				try {
-					// First try to get the tab ID from the background script
-					const response = await browser.runtime.sendMessage({ action: "ensureContentScriptLoaded" });
-					
-					let tabId: number | undefined;
-					if (response && typeof response === 'object') {
-						tabId = (response as { tabId: number }).tabId;
-					}
-
-					// If we didn't get a tab ID, try to get it from the background script
-					if (!tabId) {
-						try {
-							const response = await browser.runtime.sendMessage({ action: "getActiveTab" }) as { tabId?: number; error?: string };
-							if (response && !response.error && response.tabId) {
-								tabId = response.tabId;
-							}
-						} catch (error) {
-							console.error('[Content] Failed to get tab ID from background script:', error);
-						}
-					}
-
-					if (tabId) {
-						await browser.runtime.sendMessage({ action: "toggleHighlighterMode", tabId });
-					} else {
-						console.error('[Content]','Could not determine tab ID');
-					}
-				} catch (error) {
-					console.error('[Content]','Error in toggle flow:', error);
-				}
-			});
-		}
-	});
-
 })();

@@ -1,7 +1,7 @@
 ---
 title: "How to Build a CLI Tool"
 author:
-  - "[[Tech Channel]]"
+  - "[[file:Tech Channel]]"
 published: 2024-06-15
 source: "https://www.youtube.com/watch?v=abc123"
 image: "https://i.ytimg.com/vi/abc123/maxresdefault.jpg"

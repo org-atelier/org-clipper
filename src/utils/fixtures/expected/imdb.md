@@ -1,15 +1,15 @@
 ---
 title: "The Matrix"
 genre:
-  - "[[Action]]"
-  - "[[Sci-Fi]]"
+  - "[[file:Action]]"
+  - "[[file:Sci-Fi]]"
 director:
-  - "[[Lana Wachowski]]"
-  - "[[Lilly Wachowski]]"
+  - "[[file:Lana Wachowski]]"
+  - "[[file:Lilly Wachowski]]"
 cast:
-  - "[[Keanu Reeves]]"
-  - "[[Laurence Fishburne]]"
-  - "[[Carrie-Anne Moss]]"
+  - "[[file:Keanu Reeves]]"
+  - "[[file:Laurence Fishburne]]"
+  - "[[file:Carrie-Anne Moss]]"
 rating: 8.7
 year: 1999
 image: "https://example.com/matrix-poster.jpg"

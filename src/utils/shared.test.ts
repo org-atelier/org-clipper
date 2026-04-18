@@ -106,18 +106,15 @@ describe('buildVariables', () => {
 		const vars = buildVariables(makeParams());
 		expect(vars['{{selection}}']).toBe('');
 		expect(vars['{{selectionHtml}}']).toBe('');
-		expect(vars['{{highlights}}']).toBe('');
 	});
 
-	test('includes selection and highlights when provided', () => {
+	test('includes selection when provided', () => {
 		const vars = buildVariables(makeParams({
 			selection: 'selected text',
 			selectionHtml: '<mark>selected text</mark>',
-			highlights: '[{"text":"highlight"}]',
 		}));
 		expect(vars['{{selection}}']).toBe('selected text');
 		expect(vars['{{selectionHtml}}']).toBe('<mark>selected text</mark>');
-		expect(vars['{{highlights}}']).toBe('[{"text":"highlight"}]');
 	});
 
 	test('produces date and time in ISO-like format', () => {

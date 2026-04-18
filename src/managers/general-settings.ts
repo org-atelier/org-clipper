@@ -9,11 +9,9 @@ import { createDefaultTemplate, getTemplates, saveTemplateSettings } from '../ma
 import { updateTemplateList, showTemplateEditor } from '../managers/template-ui';
 import { exportAllSettings, importAllSettings } from '../utils/import-export';
 import { Template } from '../types/types';
-import { exportHighlights } from './highlights-manager';
 import { getMessage, setupLanguageAndDirection } from '../utils/i18n';
 import { debounce } from '../utils/debounce';
 import browser from '../utils/browser-polyfill';
-import { createUsageChart, aggregateUsageData } from '../utils/charts';
 import { getClipHistory } from '../utils/storage-utils';
 import dayjs from 'dayjs';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
@@ -224,10 +222,7 @@ export function initializeGeneralSettings(): void {
 		initializeAutoSave();
 		initializeResetDefaultTemplateButton();
 		initializeExportImportAllSettingsButtons();
-		initializeHighlighterSettings();
-		initializeExportHighlightsButton();
 		initializeSaveBehaviorDropdown();
-		await initializeUsageChart();
 
 		// Initialize feedback modal close button
 		const feedbackModal = document.getElementById('feedback-modal');
@@ -253,20 +248,13 @@ function saveSettingsFromForm(): void {
 	const betaFeaturesToggle = document.getElementById('beta-features-toggle') as HTMLInputElement;
 	const legacyModeToggle = document.getElementById('legacy-mode-toggle') as HTMLInputElement;
 	const silentOpenToggle = document.getElementById('silent-open-toggle') as HTMLInputElement;
-	const highlighterToggle = document.getElementById('highlighter-toggle') as HTMLInputElement;
-	const alwaysShowHighlightsToggle = document.getElementById('highlighter-visibility') as HTMLInputElement;
-	const highlightBehaviorSelect = document.getElementById('highlighter-behavior') as HTMLSelectElement;
-
 	const updatedSettings = {
-		...generalSettings, // Keep existing settings
+		...generalSettings,
 		openBehavior: (openBehaviorDropdown?.value as 'popup' | 'embedded') ?? generalSettings.openBehavior,
 		showMoreActionsButton: showMoreActionsToggle?.checked ?? generalSettings.showMoreActionsButton,
 		betaFeatures: betaFeaturesToggle?.checked ?? generalSettings.betaFeatures,
 		legacyMode: legacyModeToggle?.checked ?? generalSettings.legacyMode,
 		silentOpen: silentOpenToggle?.checked ?? generalSettings.silentOpen,
-		highlighterEnabled: highlighterToggle?.checked ?? generalSettings.highlighterEnabled,
-		alwaysShowHighlights: alwaysShowHighlightsToggle?.checked ?? generalSettings.alwaysShowHighlights,
-		highlightBehavior: highlightBehaviorSelect?.value ?? generalSettings.highlightBehavior
 	};
 
 	saveSettings(updatedSettings);
@@ -367,7 +355,7 @@ function initializeSaveBehaviorDropdown(): void {
 
     dropdown.value = generalSettings.saveBehavior;
     dropdown.addEventListener('change', () => {
-        const newValue = dropdown.value as 'addToObsidian' | 'copyToClipboard' | 'saveFile';
+        const newValue = dropdown.value as 'saveFile' | 'copyToClipboard';
         saveSettings({ saveBehavior: newValue });
     });
 }
@@ -402,57 +390,6 @@ function initializeExportImportAllSettingsButtons(): void {
 	if (importAllSettingsBtn) {
 		importAllSettingsBtn.addEventListener('click', importAllSettings);
 	}
-}
-
-function initializeExportHighlightsButton(): void {
-	const exportHighlightsBtn = document.getElementById('export-highlights');
-	if (exportHighlightsBtn) {
-		exportHighlightsBtn.addEventListener('click', exportHighlights);
-	}
-}
-
-function initializeHighlighterSettings(): void {
-	initializeSettingToggle('highlighter-toggle', generalSettings.highlighterEnabled, (checked) => {
-		saveSettings({ ...generalSettings, highlighterEnabled: checked });
-	});
-
-	initializeSettingToggle('highlighter-visibility', generalSettings.alwaysShowHighlights, (checked) => {
-		saveSettings({ ...generalSettings, alwaysShowHighlights: checked });
-	});
-
-	const highlightBehaviorSelect = document.getElementById('highlighter-behavior') as HTMLSelectElement;
-	if (highlightBehaviorSelect) {
-		highlightBehaviorSelect.value = generalSettings.highlightBehavior;
-		highlightBehaviorSelect.addEventListener('change', () => {
-			saveSettings({ ...generalSettings, highlightBehavior: highlightBehaviorSelect.value });
-		});
-	}
-}
-
-async function initializeUsageChart(): Promise<void> {
-	const chartContainer = document.getElementById('usage-chart');
-	const periodSelect = document.getElementById('usage-period-select') as HTMLSelectElement;
-	const aggregationSelect = document.getElementById('usage-aggregation-select') as HTMLSelectElement;
-	if (!chartContainer || !periodSelect || !aggregationSelect) return;
-
-	const history = await getClipHistory();
-
-	const updateChart = async () => {
-		const options = {
-			timeRange: periodSelect.value as '30d' | 'all',
-			aggregation: aggregationSelect.value as 'day' | 'week' | 'month'
-		};
-		
-		const chartData = aggregateUsageData(history, options);
-		await createUsageChart(chartContainer, chartData);
-	};
-
-	// Initialize with default selections
-	await updateChart();
-
-	// Update when any selector changes
-	periodSelect.addEventListener('change', updateChart);
-	aggregationSelect.addEventListener('change', updateChart);
 }
 
 async function handleRating(rating: number) {

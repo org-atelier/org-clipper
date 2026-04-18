@@ -1,6 +1,6 @@
 ---
 title: "Best Chocolate Cake"
-author: "[[Jane Baker]]"
+author: "[[file:Jane Baker]]"
 prep_time: "PT30M"
 cook_time: "PT45M"
 servings: "12 servings"

@@ -3,11 +3,11 @@ categories:
   - "[[Books]]"
 title: "Tools for Conviviality"
 author:
-  - "[[Ivan Illich]]"
+  - "[[file:Ivan Illich]]"
 genre:
-  - "[[Philosophy]]"
-  - "[[Nonfiction]]"
-  - "[[Technology]]"
+  - "[[file:Philosophy]]"
+  - "[[file:Nonfiction]]"
+  - "[[file:Technology]]"
 pages: 212
 year: 1973
 scoreGr: 3.98

@@ -36,35 +36,12 @@ export interface PropertyType {
 	defaultValue?: string;
 }
 
-export interface Provider {
-	id: string;
-	name: string;
-	baseUrl: string;
-	apiKey: string;
-	apiKeyRequired?: boolean;
-	presetId?: string;
-}
-
 export interface Rating {
 	rating: number;
 	date: string;
 }
 
-export type SaveBehavior = 'addToObsidian' | 'saveFile' | 'copyToClipboard';
-
-export interface ReaderSettings {
-	fontSize: number;
-	lineHeight: number;
-	maxWidth: number;
-	lightTheme: string;
-	darkTheme: string;
-	appearance: 'auto' | 'light' | 'dark';
-	fonts: string[];
-	defaultFont: string;
-	blendImages: boolean;
-	colorLinks: boolean;
-	customCss: string;
-}
+export type SaveBehavior = 'saveFile' | 'copyToClipboard';
 
 export interface Settings {
 	vaults: string[];
@@ -73,40 +50,21 @@ export interface Settings {
 	legacyMode: boolean;
 	silentOpen: boolean;
 	openBehavior: 'popup' | 'embedded';
-	highlighterEnabled: boolean;
-	alwaysShowHighlights: boolean;
-	highlightBehavior: string;
-	interpreterModel?: string;
-	models: ModelConfig[];
-	providers: Provider[];
-	interpreterEnabled: boolean;
-	interpreterAutoRun: boolean;
-	defaultPromptContext: string;
 	propertyTypes: PropertyType[];
-	readerSettings: ReaderSettings;
 	stats: {
-		addToObsidian: number;
 		saveFile: number;
 		copyToClipboard: number;
 		share: number;
 	};
 	history: HistoryEntry[];
 	ratings: Rating[];
-	saveBehavior: 'addToObsidian' | 'saveFile' | 'copyToClipboard';
-}
-
-export interface ModelConfig {
-	id: string;
-	providerId: string;
-	providerModelId: string;
-	name: string;
-	enabled: boolean;
+	saveBehavior: SaveBehavior;
 }
 
 export interface HistoryEntry {
 	datetime: string;
 	url: string;
-	action: 'addToObsidian' | 'saveFile' | 'copyToClipboard' | 'share';
+	action: 'saveFile' | 'copyToClipboard' | 'share';
 	title?: string;
 	vault?: string;
 	path?: string;
@@ -132,4 +90,22 @@ export interface ConversationMetadata {
 export interface Footnote {
 	url: string;
 	text: string;
+}
+
+// Legacy aliases kept for components still referencing them (will be cleaned up).
+export interface ModelConfig {
+	id: string;
+	providerId: string;
+	providerModelId: string;
+	name: string;
+	enabled: boolean;
+}
+
+export interface Provider {
+	id: string;
+	name: string;
+	baseUrl: string;
+	apiKey: string;
+	apiKeyRequired?: boolean;
+	presetId?: string;
 }
