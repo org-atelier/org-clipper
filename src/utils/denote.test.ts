@@ -18,8 +18,20 @@ describe('denoteSlug', () => {
 		expect(denoteSlug('Hello World')).toBe('hello-world');
 	});
 
-	test('strips punctuation', () => {
-		expect(denoteSlug("What's New? Yeah!")).toBe('what-s-new-yeah');
+	test('removes ASCII punctuation without splitting words', () => {
+		expect(denoteSlug("What's New? Yeah!")).toBe('whats-new-yeah');
+	});
+
+	test('handles C++ / C# style symbols', () => {
+		expect(denoteSlug('C++ Tutorial: An Intro')).toBe('c-tutorial-an-intro');
+	});
+
+	test('strips typographic quotes and dashes', () => {
+		expect(denoteSlug('“Smart” — quotes – test')).toBe('smart-quotes-test');
+	});
+
+	test('strips filesystem-unsafe characters', () => {
+		expect(denoteSlug('a/b\\c')).toBe('abc');
 	});
 
 	test('collapses repeated separators', () => {
@@ -42,8 +54,13 @@ describe('denoteSlug', () => {
 		expect(denoteSlug('你好世界')).toBe('你好世界');
 	});
 
-	test('mixes CJK and punctuation', () => {
-		expect(denoteSlug('如何用 Emacs？一个介绍')).toBe('如何用-emacs-一个介绍');
+	test('keeps CJK punctuation, strips ASCII punctuation', () => {
+		// Chinese question mark `？` is not in the ASCII excluded set so it stays.
+		expect(denoteSlug('如何用 Emacs？一个介绍')).toBe('如何用-emacs？一个介绍');
+	});
+
+	test('strips ASCII colon even between CJK', () => {
+		expect(denoteSlug('如何用 Emacs: 一个介绍')).toBe('如何用-emacs-一个介绍');
 	});
 
 	test('preserves Cyrillic letters', () => {

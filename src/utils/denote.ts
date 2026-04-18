@@ -49,27 +49,61 @@ export function denoteIdentifier(date: Date): string {
 }
 
 /**
+ * ASCII punctuation that Denote strips from titles (replaced with empty
+ * string, not a hyphen). Mirrors `denote-excluded-punctuation-regexp` in
+ * Denote.el. Non-ASCII punctuation (e.g. CJK 。，！？：「」) is preserved.
+ */
+const DENOTE_EXCLUDED_PUNCT = /[\][{}!@#$%^&*()+'\\",.?;:/|<>~`‘’“”–—]/g;
+
+/**
+ * Filesystem-unsafe or reserved characters that must always be removed,
+ * regardless of whether they are ASCII or not (e.g. NUL, CJK `／`).
+ */
+const FS_UNSAFE = /[\0/\\]/g;
+
+/**
+ * Characters reserved by the Denote filename grammar. They cannot appear
+ * in a title slug because they would be confused with the field separators.
+ */
+const DENOTE_RESERVED = /[=@]/g;
+
+/**
  * Slugify a title for the Denote TITLE field.
  *
- * Preserves Unicode letters and digits (including CJK, Cyrillic, etc.) but
- * strips Latin diacritics via NFKD decomposition so "Café" becomes "cafe"
- * while "你好 world" becomes "你好-world".
+ * Preserves Unicode letters, digits, and non-ASCII punctuation while
+ * stripping ASCII punctuation and Latin diacritics. Whitespace and
+ * underscores are folded into hyphens. Matches Denote.el's default
+ * sluggification so round-tripping through Emacs stays stable.
+ *
+ * Examples:
+ *   "What's up?"                -> "whats-up"
+ *   "C++ Tutorial: An Intro"    -> "c-tutorial-an-intro"
+ *   "Café Résumé"               -> "cafe-resume"
+ *   "如何用 Emacs：一个介绍"       -> "如何用-emacs：一个介绍"
  */
 export function denoteSlug(input: string): string {
+	// NFD (not NFKD) so fullwidth CJK punctuation like `？` `：` are preserved
+	// but Latin diacritics still decompose for stripping below.
 	return (input || '')
-		.normalize('NFKD')
+		.normalize('NFD')
 		.replace(/\p{M}+/gu, '')
+		.replace(FS_UNSAFE, '')
+		.replace(DENOTE_RESERVED, '')
+		.replace(DENOTE_EXCLUDED_PUNCT, '')
 		.toLowerCase()
-		.replace(/[^\p{L}\p{N}]+/gu, '-')
+		.replace(/[\s_]+/g, '-')
+		.replace(/-+/g, '-')
 		.replace(/^-+|-+$/g, '');
 }
 
 /**
  * Slugify a tag: lowercase, Unicode letters/digits only, no separators.
+ * (Tags are stricter than titles — they must not contain punctuation that
+ * would collide with the `_` / `-` separators.)
  */
 export function denoteSlugTag(input: string): string {
 	return (input || '')
-		.normalize('NFKD')
+		.normalize('NFD')
 		.replace(/\p{M}+/gu, '')
 		.toLowerCase()
 		.replace(/[^\p{L}\p{N}]+/gu, '');
